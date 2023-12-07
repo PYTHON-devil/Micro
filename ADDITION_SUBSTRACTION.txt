@@ -1,0 +1,160 @@
+ADDITION
+
+.model small
+.386
+.data
+num1 DD 00000000H
+num2 DD 00000000H
+num3 DD 00000000H
+msg db 10,13,"Enter the first no.:: $"
+msg1 db 10,13,"Enter the second no.:: $"
+msg2 db 10,13,"The Resultant sum is :: $"
+
+.code
+.startup
+
+MOV AH,09
+MOV DX,OFFSET msg
+INT 21H
+
+MOV EBX,0
+MOV CX,8
+
+AGAIN: MOV AH,01 ;1ST NO. ENTERED
+INT 21H
+CMP AL,'A'
+JGE L2
+SUB AL,30H
+SHL EBX,4
+ADD BL,AL
+LOOP AGAIN
+
+MOV num1,EBX
+
+MOV AH,09
+MOV DX,OFFSET msg1
+INT 21H
+
+MOV EBX,0
+MOV CX,8
+AGAIN1:MOV AH,01 ;2nd NO. ENTERED
+INT 21H
+CMP AL,'A'
+JGE L2
+SUB AL,30H
+SHL EBX,4
+ADD BL,AL
+LOOP AGAIN1
+
+MOV num2, EBX
+
+mov ax, word ptr num1
+mov dx, word ptr num2
+add al,dl
+daa
+mov bl,al
+
+mov al,ah
+adc al,dh
+daa
+mov bh,al
+
+mov word ptr num3, bx
+
+mov ax, word ptr num1+2
+mov dx, word ptr num2+2
+adc al,dl
+daa
+mov bl,al
+
+mov al,ah
+adc al,dh
+daa
+mov bh,al
+
+mov word ptr num3+2,bx
+mov ebx,num3
+
+
+
+mov ah, 09h
+mov dx, offset msg2
+int 21h
+jnc l6
+mov ah, 02h
+mov dl, "1"
+int 21h 
+l6: MOV CX,8
+AGAIN2: ROL EBX,4
+MOV DL,BL
+AND DL,0FH
+ADD DL,30H
+MOV AH,02
+INT 21H
+LOOP AGAIN2
+L2: .EXIT
+END
+
+
+			SUBSTRACTION
+
+.MODEL TINY
+.486
+.CODE
+.STARTUP
+
+; initialize registers
+MOV EBX, 37829156H    ; BH  = 91H   BL = 56H
+MOV EDX, 45218907H    ; DH  = 89H   DL = 07H
+
+; perform SUBtraction
+SUB DL, BL            ; DL  = 07H - 56H = B1H
+
+; perform Decimal Adjust after Subtraction
+MOV AL, DL            ; AL  = B1H
+DAS                   ; AL  = 51H   C = 1
+
+; store result in ECX(CL)
+MOV CL, AL            ; CL  = 51H   ECX = 00000051H
+
+; perform SuBtraction with Borrow
+SBB DH, BH            ; DH  = 89H - 91H - 1 = F7H   C = 1
+
+; perform Decimal Adjust after Subtraction
+MOV AL, DH            ; AL  = F7H
+DAS                   ; AL  = 97H   C = 1
+
+; store result in ECX(CH)
+MOV CH, AL            ; CH  = 97H   ECX = 00009751H
+
+; swap EBX, EDX, ECX to perform calculation on higher bits
+BSWAP EBX             ; EBX = 56918237H  BH  = 82H  BL = 37H
+BSWAP EDX             ; EDX = B1F72145H  DH  = 21H  DL = 45H
+BSWAP ECX             ; ECX = 51970000H
+
+; perform SuBtraction with Borrow
+SBB DH, BH            ; DH  = 21H - 82H - 1 = 9EH   C = 1
+
+; perform Decimal Adjust after Subtraction
+MOV AL, DH            ; AL  = 9EH
+DAS                   ; AL  = (9|3)8H   C = 1
+
+; store result in ECX(CH)
+MOV CH, AL            ; CH  = (9|3)8H   ECX = 5197(9|3)800H
+
+; perform SuBtraction with Borrow
+SBB DL, BL            ; DL  = 45H - 37H - 1 = 0DH   C = 0
+
+; perform Decimal Adjust after Subtraction
+MOV AL, DL            ; AL  = 0DH
+DAS                   ; AL  = 07H   C = 0
+
+; store result in ECX(CL)
+MOV CL, AL            ; CL  = 07H   ECX = 5197(9|3)807H
+
+; swap ECX to get final result
+BSWAP ECX             ; ECX = 07(9|3)89751H
+.EXIT
+END
+
+
